@@ -1,10 +1,6 @@
-import pytest
-import selenium
-import os
+import pytest, os
 from selenium import webdriver
-import sys
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from time import sleep
