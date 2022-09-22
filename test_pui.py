@@ -22,5 +22,5 @@ def driver():
 	driver = webdriver.Chrome('./drivers/chromedriver')
 	yield driver
 	# Will be executed after the last test
-	driver.__exit__()
+	driver.quit()
 
