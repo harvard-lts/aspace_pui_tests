@@ -17,11 +17,12 @@ def test_first(driver):
 @pytest.fixture(scope='session', autouse=True)
 def driver():
 	# Will be executed before the first test
-	options = Options()
+	options = webdriver.ChromeOptions()
+	options.add_argument('--no-sandbox')
+	options.add_argument('--window-size=1920,1080')
 	options.add_argument('--headless')
 	options.add_argument('--disable-gpu')
-	driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+	driver = webdriver.Chrome(options=options)
 	yield driver
 	# Will be executed after the last test
 	driver.quit()
-
