@@ -14,6 +14,12 @@ from time import sleep
 _base_url = os.getenv('BASE_URL')
 # print(driver.page_source)
 
+# Could not be tested on dev:
+	# Due to nature of subset:
+		# Spot check number of collections, records, and digital materials against what's in production
+
+## TEST SEARCHES
+
 def test_main_page_reachable(driver):
 	driver.get(str(_base_url))
 	title = driver.title
@@ -70,6 +76,282 @@ def test_search_by_creator(driver):
 	search_field.send_keys(Keys.RETURN)
 	results = driver.find_elements(By.CLASS_NAME, "recordrow")
 	assert len(results) == 6
+
+def test_search_in_notes(driver):
+	driver.get(str(_base_url))
+	# search by keyword before searching by creator to distinguish between the two
+	search_field = driver.find_element(By.ID, "q0")
+	search_field.send_keys("drugs medicines")
+	search_field.send_keys(Keys.RETURN)
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(results) == 5
+	# then the same search, but with Notes selected from the dropdown
+	driver.get(str(_base_url))
+	select = Select(driver.find_element(By.ID, 'field0'))
+	select.select_by_visible_text("Notes")
+	search_field = driver.find_element(By.ID, "q0")
+	search_field.send_keys("drugs medicines")
+	search_field.send_keys(Keys.RETURN)
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(results) == 1
+
+def test_search_by_identifier(driver):
+	driver.get(str(_base_url))
+	# search by keyword before searching by creator to distinguish between the two
+	search_field = driver.find_element(By.ID, "q0")
+	search_field.send_keys("MC 381")
+	search_field.send_keys(Keys.RETURN)
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(results) == 4
+	# then the same search, but with Notes selected from the dropdown
+	driver.get(str(_base_url))
+	select = Select(driver.find_element(By.ID, 'field0'))
+	select.select_by_visible_text("Identifier")
+	search_field = driver.find_element(By.ID, "q0")
+	search_field.send_keys("MC 381")
+	search_field.send_keys(Keys.RETURN)
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(results) == 1
+
+def test_complex_searching(driver):
+	driver.get(str(_base_url))
+	# simple search first to contrast
+	search_field = driver.find_element(By.ID, "q0")
+	search_field.send_keys("watercolor")
+	search_field.send_keys(Keys.RETURN)
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(results) == 25
+	# then the complex search
+	driver.get(str(_base_url))
+	search_field = driver.find_element(By.ID, "q0")
+	search_field.send_keys("watercolor")
+	plus_button = driver.find_element(By.CLASS_NAME, "btn-default")
+	plus_button.click()
+	second_search_field = driver.find_element(By.ID, "q1")
+	second_search_field.send_keys("caricatures")
+	second_search_field.send_keys(Keys.RETURN)
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(results) == 2
+	
+def test_limit_by_record_type(driver):
+	driver.get(str(_base_url))
+	search_field = driver.find_element(By.ID, "q0")
+	select = Select(driver.find_element(By.ID, 'limit'))
+	select.select_by_visible_text("Limit collections")
+	search_field.send_keys("drugs medicines")
+	search_field.send_keys(Keys.RETURN)
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(results) == 3
+	driver.get(str(_base_url))
+	search_field = driver.find_element(By.ID, "q0")
+	select = Select(driver.find_element(By.ID, 'limit'))
+	select.select_by_visible_text("Limit digital materials")
+	search_field.send_keys("drugs medicines")
+	search_field.send_keys(Keys.RETURN)
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(results) == 2
+
+def test_limit_by_year(driver):
+	driver.get(str(_base_url))
+	search_field = driver.find_element(By.ID, "q0")
+	search_field.send_keys("drugs medicines")
+	search_field.send_keys(Keys.RETURN)
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(results) == 5
+	driver.get(str(_base_url))
+	search_field = driver.find_element(By.ID, "q0")
+	year_field_1 = driver.find_element(By.ID, "from_year0")
+	year_field_2 = driver.find_element(By.ID, "to_year0")
+	year_field_1.send_keys("1876")
+	year_field_2.send_keys("1877")
+	search_field.send_keys("drugs medicines")
+	search_field.send_keys(Keys.RETURN)
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(results) == 2
+
+## TEST RESULTS
+
+def test_results_priority(driver):
+	# Are collections at the top of the list?
+	driver.get(str(_base_url))
+	search_field = driver.find_element(By.ID, "q0")
+	search_field.send_keys("watercolor caricatures")
+	search_field.send_keys(Keys.RETURN)
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(results) == 2
+	collection_result = results[0]
+	item_result = results[1]
+	assert collection_result.find_element(By.TAG_NAME, "i").get_attribute("class") == "fa fa-archive fa-3x"
+	assert item_result.find_element(By.TAG_NAME, "i").get_attribute("class") == "fa fa-file-o fa-3x"
+
+def test_sort_results_by_title(driver):
+	# Initial sort by relevance
+	driver.get(str(_base_url))
+	search_field = driver.find_element(By.ID, "q0")
+	select = Select(driver.find_element(By.ID, 'limit'))
+	select.select_by_visible_text("Limit collections")
+	search_field.send_keys("theater")
+	search_field.send_keys(Keys.RETURN)
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert results[0].find_element(By.CLASS_NAME, "record-title").text == "Frank Lloyd Wright drawings of Dallas Theater Center"
+
+	# Sort by title (asc)
+	select = Select(driver.find_element(By.ID, 'sort'))
+	select.select_by_visible_text("Title (ascending)")
+	sort_button = driver.find_element(By.CLASS_NAME, "sort-button")
+	sort_button.click()
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert results[0].find_element(By.CLASS_NAME, "record-title").text == "Amy Daval collection of brochures, pamphlets, and playbills"
+
+	# Sort by title (desc)
+	select = Select(driver.find_element(By.ID, 'sort'))
+	select.select_by_visible_text("Title (descending)")
+	sort_button = driver.find_element(By.CLASS_NAME, "sort-button")
+	sort_button.click()
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert results[0].find_element(By.CLASS_NAME, "record-title").text == "Zdeněk Seydl costume and stage designs"
+
+def test_sort_results_by_year(driver):
+	# Initial sort by relevance
+	driver.get(str(_base_url))
+	search_field = driver.find_element(By.ID, "q0")
+	select = Select(driver.find_element(By.ID, 'limit'))
+	select.select_by_visible_text("Limit collections")
+	search_field.send_keys("theater")
+	search_field.send_keys(Keys.RETURN)
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert results[0].find_element(By.CLASS_NAME, "record-title").text == "Frank Lloyd Wright drawings of Dallas Theater Center"
+
+	# Sort by title (asc)
+	select = Select(driver.find_element(By.ID, 'sort'))
+	select.select_by_visible_text("Year (ascending)")
+	sort_button = driver.find_element(By.CLASS_NAME, "sort-button")
+	sort_button.click()
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert results[0].find_element(By.CLASS_NAME, "record-title").text == "Robert Cruikshank drawings for toy theater characters"
+
+	# Sort by title (desc)
+	select = Select(driver.find_element(By.ID, 'sort'))
+	select.select_by_visible_text("Year (descending)")
+	sort_button = driver.find_element(By.CLASS_NAME, "sort-button")
+	sort_button.click()
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert results[0].find_element(By.CLASS_NAME, "record-title").text == "Harvard Film Archive Visiting Directors Audio Collection"
+
+def test_refine_results_by_repository(driver):
+	# Initial search
+	driver.get(str(_base_url))
+	search_field = driver.find_element(By.ID, "q0")
+	select = Select(driver.find_element(By.ID, 'limit'))
+	select.select_by_visible_text("Limit collections")
+	search_field.send_keys("theater")
+	search_field.send_keys(Keys.RETURN)
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(results) == 25
+
+	# Filter by loeb music library
+	filter_zone = driver.find_element(By.CLASS_NAME, "filter_facets")
+	filter_zone.find_element(By.LINK_TEXT, "Loeb Music Library").click()
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(results) == 6
+	for result in results:
+		assert result.find_element(By.CLASS_NAME, "repo_name").text == "Loeb Music Library"
+
+def test_refine_results_by_type(driver):
+	# Initial search
+	driver.get(str(_base_url))
+	search_field = driver.find_element(By.ID, "q0")
+	search_field.send_keys("typeface")
+	search_field.send_keys(Keys.RETURN)
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(results) == 6
+
+	filter_zone = driver.find_element(By.CLASS_NAME, "filter_facets")
+	filter_zone.find_element(By.LINK_TEXT, "Collection").click()
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(results) == 1
+
+def test_refine_results_by_subject(driver):
+	# Initial search
+	driver.get(str(_base_url))
+	search_field = driver.find_element(By.ID, "q0")
+	select = Select(driver.find_element(By.ID, 'limit'))
+	select.select_by_visible_text("Limit collections")
+	search_field.send_keys("theater")
+	search_field.send_keys(Keys.RETURN)
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(results) == 25
+
+	filter_zone = driver.find_element(By.CLASS_NAME, "filter_facets")
+	filter_zone.find_element(By.LINK_TEXT, "Architecture, Modern -- 20th century -- Archival resources").click()
+	results = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(results) == 6
+	
+## Browse Repositories
+
+def test_browse_repositories(driver):
+	driver.get(str(_base_url) + "repositories")
+	driver.find_element(By.LINK_TEXT, "Botany Libraries, Orchid Library of Oakes Ames, Harvard University").click()
+	repo_info = driver.find_elements(By.CLASS_NAME, "repo_info")
+	assert repo_info[0].text == "Botany Libraries, Orchid Library of Oakes Ames, Harvard University"
+	assert repo_info[1].text == "http://huh.harvard.edu/libraries"
+	assert repo_info[2].text == "5 Collections"
+	assert driver.find_element(By.ID, "lead_graph").text.startswith("The Harvard University Herbaria houses five comprehensive")
+	contact_info = driver.find_elements(By.CLASS_NAME, "contact")
+	assert contact_info[0].text.startswith("Harvard University Herbaria")
+	assert contact_info[1].text.startswith("(617)")
+	assert contact_info[2].text.startswith("botref")
+
+def test_repository_collections(driver):
+	driver.get(str(_base_url) + "repositories")
+	driver.find_element(By.LINK_TEXT, "Botany Libraries, Orchid Library of Oakes Ames, Harvard University").click()
+	driver.find_element(By.LINK_TEXT, "5 Collections").click()
+	repo_collections = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(repo_collections) == 5
+	repo_collections[0].find_element(By.CLASS_NAME, "record-title").click()
+	assert driver.current_url == _base_url + "repositories/28/resources/10959"
+
+## Browse Collections
+
+def test_browse_collections_and_sort(driver):
+	driver.get(str(_base_url))
+	driver.find_element(By.CLASS_NAME, "submenu").click()
+	driver.find_element(By.LINK_TEXT, "Collections").click()
+	assert driver.current_url == _base_url + "repositories/resources"
+	records = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(records) == 25
+	assert records[0].find_element(By.CLASS_NAME, "record-title").text.startswith("1")
+
+	# Sort by title (desc)
+	select = Select(driver.find_element(By.ID, 'sort'))
+	select.select_by_visible_text("Title (descending)")
+	sort_button = driver.find_element(By.CLASS_NAME, "sort-button")
+	sort_button.click()
+	records = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(records) == 25
+	assert records[0].find_element(By.CLASS_NAME, "record-title").text.startswith("Z")
+
+## Browse Digital Materials
+
+def test_browse_digital_materials(driver):
+	driver.get(str(_base_url))
+	driver.find_element(By.CLASS_NAME, "submenu").click()
+	driver.find_element(By.LINK_TEXT, "Digital Materials").click()
+	assert driver.current_url == _base_url + "objects?limit=digital_object"
+	records = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(records) == 25
+	# Note that below is the Cyrillic B, not Roman
+	assert records[0].find_element(By.CLASS_NAME, "record-title").text.startswith("В")
+
+	# Sort by title (desc)
+	select = Select(driver.find_element(By.ID, 'sort'))
+	select.select_by_visible_text("Title (descending)")
+	sort_button = driver.find_element(By.CLASS_NAME, "sort-button")
+	sort_button.click()
+	records = driver.find_elements(By.CLASS_NAME, "recordrow")
+	assert len(records) == 25
+	assert records[0].find_element(By.CLASS_NAME, "record-title").text.startswith("Z")
+
 
 @pytest.fixture(scope='session', autouse=True)
 def driver():
