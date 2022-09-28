@@ -29,4 +29,4 @@ COPY --chown=puitester . /home/puitester
 
 USER puitester
 
-CMD ["pytest"]
+CMD ["pytest", "-v"]
