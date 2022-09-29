@@ -13,3 +13,9 @@ To-Dos:
 
 Tests from spreadsheet that were unable to be added:
 - All instances of comparing record counts against prod record counts are not relevant due to the intentionally much-smaller size of the data subset.
+- Request list: Any functionality that interacts with Harvard Key
+- - Aeon HarvardKey login
+- - Checking that items made it all the way to your Aeon Account
+- - Checking that you go directly to Aeon after already sending one item and logging in
+- - Aeon account logout
+- - Aeon account creation
