@@ -9,7 +9,7 @@ Automated tests based on Julie Wetherill's aspace PUI testing spreadsheet here:
 https://docs.google.com/spreadsheets/d/19m0FpJyDCU-YRZwuvspJrOjMPFVNF49_U4vX6P_OtfA/edit#gid=0
 
 To-Dos:
-- Add a package for reading pdfs in order to test spreadsheet contents (currently only check successful download)
+- test_download_pdf: Add a package for reading pdfs in order to test download contents (currently only check successful download)
 
 Tests from spreadsheet that were unable to be added:
 - All instances of comparing record counts against prod record counts are not relevant due to the intentionally much-smaller size of the data subset.
