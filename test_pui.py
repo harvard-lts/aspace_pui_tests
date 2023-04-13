@@ -339,8 +339,7 @@ def test_browse_digital_materials(driver):
 	assert driver.current_url == _base_url + "objects?limit=digital_object"
 	records = driver.find_elements(By.CLASS_NAME, "recordrow")
 	assert len(records) == 25
-	# Note that below is the Cyrillic B, not Roman
-	assert records[0].find_element(By.CLASS_NAME, "record-title").text.startswith("В")
+	assert records[0].find_element(By.CLASS_NAME, "record-title").text.startswith("(")
 
 	# Sort by title (desc)
 	select = Select(driver.find_element(By.ID, 'sort'))
@@ -349,7 +348,7 @@ def test_browse_digital_materials(driver):
 	sort_button.click()
 	records = driver.find_elements(By.CLASS_NAME, "recordrow")
 	assert len(records) == 25
-	assert records[0].find_element(By.CLASS_NAME, "record-title").text.startswith("Z")
+	assert records[0].find_element(By.CLASS_NAME, "record-title").text.startswith("黃")
 
 ###### Test Finding Aid ######
 
@@ -364,8 +363,10 @@ def test_collection_organization(driver):
 	assert sidebar.find_element(By.CLASS_NAME, "title").text == "Albert F. Blakeslee correspondence and notebooks"
 	nodes = sidebar.find_elements(By.CLASS_NAME, "largetree-node")
 	assert len(nodes) == 2
-	assert nodes[0].text == "Correspondence, 1923-1960"
-	assert nodes[1].text == "Notebooks, 1912-1941"
+	# 'Correspondence' and 'Notebooks' appear more than once due to screen-reader only accessibility text added
+	# in some version between 3.0.2 and 3.3.1
+	assert nodes[0].text == "Correspondence\nCorrespondence, 1923-1960"
+	assert nodes[1].text == "Notebooks\nNotebooks, 1912-1941"
 
 	# expand an item
 	nodes[0].find_element(By.CLASS_NAME, "expandme").click()
@@ -449,8 +450,8 @@ def test_collection_overview_tab(driver):
 	assert dds[3].text == "dacs"
 	assert dds[4].text == "und"
 	assert dds[5].text == "far00002"
-	assert panel_bodies[3].find_element(By.TAG_NAME, "h2").text == "Repository Details"
-	assert panel_bodies[3].find_element(By.XPATH, "//h2/following-sibling::p").text == "Part of the Botany Libraries, Farlow Reference Library of Cryptogamic Botany, Harvard University Repository"
+	assert panel_bodies[3].find_element(By.TAG_NAME, "h3").text == "Repository Details"
+	assert panel_bodies[3].find_element(By.XPATH, "//h3/following-sibling::p").text == "Part of the Botany Libraries, Farlow Reference Library of Cryptogamic Botany, Harvard University Repository"
 	assert panel_bodies[3].find_element(By.CLASS_NAME, "website").find_element(By.TAG_NAME, "a").text == "http://huh.harvard.edu/libraries"
 	assert panel_bodies[3].find_element(By.ID, "lead_graph").text.startswith("The Harvard University Herbaria houses five research libraries that are managed")
 	contact_info = panel_bodies[3].find_element(By.CLASS_NAME, "contact_info")
@@ -513,7 +514,7 @@ def test_collection_inventory(driver):
 	for icon in expandme_icons:
 		icon.click()
 	sleep(2)
-	sidebar_records = driver.find_element(By.ID, "sidebar").find_elements(By.CLASS_NAME, "title")
+	sidebar_records = driver.find_element(By.ID, "sidebar").find_elements(By.CLASS_NAME, "record-title")
 	assert len(infinite_records) == len(sidebar_records) == 19
 	index = 0
 	actions = ActionChains(driver)
@@ -589,12 +590,10 @@ def test_finding_aid_citation(driver):
 	# Citation button has the request class for some reason
 	driver.find_element(By.CLASS_NAME, "request").click()
 	sleep(1)
-	description_tab = driver.find_element(By.ID, "description")
+	description_tab = driver.find_element(By.ID, "item_description_citation")
 	today = datetime.now().strftime("%B %-d, %Y")
 	assert description_tab.text == f"Albert F. Blakeslee correspondence and notebooks, 1912-1960. far00002. Archives of the Farlow Herbarium of Cryptogamic Botany, Harvard University. https://id.lib.harvard.edu/ead/far00002/catalog Accessed {today}."
-	driver.find_element(By.CLASS_NAME, "nav-tabs").find_elements(By.TAG_NAME, "li")[0].click()
-	sleep(1)
-	assert driver.find_element(By.ID, "item").text == "Albert F. Blakeslee correspondence and notebooks, 1912-1960. far00002. Archives of the Farlow Herbarium of Cryptogamic Botany, Harvard University."
+	assert driver.find_element(By.ID, "item_citation").text == "Albert F. Blakeslee correspondence and notebooks, 1912-1960. far00002. Archives of the Farlow Herbarium of Cryptogamic Botany, Harvard University."
 
 def test_download_pdf(driver):
 	driver.get(str(_base_url) + "repositories/20/resources/1182")
@@ -645,7 +644,7 @@ def test_finding_aid_component_citation(driver):
 	# Look at the top level resource to ensure citations are not identical
 	driver.find_element(By.CLASS_NAME, "request").click()
 	sleep(1)
-	description_tab = driver.find_element(By.ID, "description")
+	description_tab = driver.find_element(By.ID, "item_description_citation")
 	today = datetime.now().strftime("%B %-d, %Y")
 	top_level_text = f"Albert F. Blakeslee correspondence and notebooks, 1912-1960. far00002. Archives of the Farlow Herbarium of Cryptogamic Botany, Harvard University. https://id.lib.harvard.edu/ead/far00002/catalog Accessed {today}."
 	assert description_tab.text == top_level_text
@@ -656,13 +655,11 @@ def test_finding_aid_component_citation(driver):
 	assert driver.current_url == "https://aspacepui-dev.lib.harvard.edu/repositories/20/archival_objects/262126"
 	driver.find_element(By.CLASS_NAME, "request").click()
 	sleep(1)
-	description_tab = driver.find_element(By.ID, "description")
+	description_tab = driver.find_element(By.ID, "item_description_citation")
 	today = datetime.now().strftime("%B %-d, %Y")
 	assert description_tab.text == f"Correspondence, 1923-1960. Albert F. Blakeslee correspondence and notebooks, far00002, I. Botany Libraries, Farlow Reference Library of Cryptogamic Botany, Harvard University. https://id.lib.harvard.edu/ead/c/far00002c00001/catalog Accessed {today}."
 
-	driver.find_element(By.CLASS_NAME, "nav-tabs").find_elements(By.TAG_NAME, "li")[0].click()
-	sleep(1)
-	assert driver.find_element(By.ID, "item").text == "Correspondence, 1923-1960. Albert F. Blakeslee correspondence and notebooks, far00002, I. Botany Libraries, Farlow Reference Library of Cryptogamic Botany, Harvard University."
+	assert driver.find_element(By.ID, "item_citation").text == "Correspondence, 1923-1960. Albert F. Blakeslee correspondence and notebooks, far00002, I. Botany Libraries, Farlow Reference Library of Cryptogamic Botany, Harvard University."
 
 def test_add_to_request_list_button_present(driver):
 	driver.get(str(_base_url) + "repositories/20/archival_objects/262126")
