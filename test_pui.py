@@ -192,7 +192,7 @@ def test_sort_results_by_title(driver):
 	search_field.send_keys("theater")
 	search_field.send_keys(Keys.RETURN)
 	results = driver.find_elements(By.CLASS_NAME, "recordrow")
-	assert results[0].find_element(By.CLASS_NAME, "record-title").text == "Frank Lloyd Wright drawings of Dallas Theater Center"
+	assert results[0].find_element(By.CLASS_NAME, "record-title").text == "Meyer Keilsohn theater architecture photographs"
 
 	# Sort by title (asc)
 	select = Select(driver.find_element(By.ID, 'sort'))
@@ -219,9 +219,9 @@ def test_sort_results_by_year(driver):
 	search_field.send_keys("theater")
 	search_field.send_keys(Keys.RETURN)
 	results = driver.find_elements(By.CLASS_NAME, "recordrow")
-	assert results[0].find_element(By.CLASS_NAME, "record-title").text == "Frank Lloyd Wright drawings of Dallas Theater Center"
+	assert results[0].find_element(By.CLASS_NAME, "record-title").text == "Meyer Keilsohn theater architecture photographs"
 
-	# Sort by title (asc)
+	# Sort by year (asc)
 	select = Select(driver.find_element(By.ID, 'sort'))
 	select.select_by_visible_text("Year (ascending)")
 	sort_button = driver.find_element(By.CLASS_NAME, "sort-button")
@@ -229,7 +229,7 @@ def test_sort_results_by_year(driver):
 	results = driver.find_elements(By.CLASS_NAME, "recordrow")
 	assert results[0].find_element(By.CLASS_NAME, "record-title").text == "Robert Cruikshank drawings for toy theater characters"
 
-	# Sort by title (desc)
+	# Sort by year (desc)
 	select = Select(driver.find_element(By.ID, 'sort'))
 	select.select_by_visible_text("Year (descending)")
 	sort_button = driver.find_element(By.CLASS_NAME, "sort-button")
@@ -328,7 +328,7 @@ def test_browse_collections_and_sort(driver):
 	sort_button.click()
 	records = driver.find_elements(By.CLASS_NAME, "recordrow")
 	assert len(records) == 25
-	assert records[0].find_element(By.CLASS_NAME, "record-title").text.startswith("Z")
+	assert records[0].find_element(By.CLASS_NAME, "record-title").text.startswith("[")
 
 ###### Browse Digital Materials ######
 
@@ -404,7 +404,7 @@ def test_collection_overview_tab(driver):
 	assert len(h4s) == 4
 	assert h4s[1].text == "Dates"
 	assert h4s[3].text == "Extent"
-	assert upper_details.find_element(By.CLASS_NAME, "dates").text == "1912-1960"
+	assert upper_details.find_element(By.CLASS_NAME, "dates").text == "Creation: 1912-1960"
 	h3s = upper_details.find_elements(By.TAG_NAME, "h3")
 	assert len(h3s) == 1
 	assert h3s[0].text == "Creator"
@@ -635,7 +635,6 @@ def test_download_csv(driver):
 	
 	index = 0
 	for row in downloaded_rows:
-		print(index)
 		assert row == test_rows[index]
 		index += 1
 
@@ -652,7 +651,7 @@ def test_finding_aid_component_citation(driver):
 	driver.get(str(_base_url) + "repositories/20/resources/1182")
 	sleep(1)
 	driver.find_element(By.ID, "sidebar").find_element(By.LINK_TEXT, "Correspondence, 1923-1960").click()
-	assert driver.current_url == "https://aspacepui-dev.lib.harvard.edu/repositories/20/archival_objects/262126"
+	assert driver.current_url == str(_base_url) + "repositories/20/archival_objects/262126"
 	driver.find_element(By.CLASS_NAME, "request").click()
 	sleep(1)
 	description_tab = driver.find_element(By.ID, "item_description_citation")

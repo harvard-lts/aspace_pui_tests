@@ -9,3 +9,10 @@ services:
       dockerfile: './Dockerfile'
     env_file:
       - '.env'
+    networks:
+        - aspace-local
+
+  
+networks:
+  aspace-local:
+      name: aspace-local
