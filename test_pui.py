@@ -503,7 +503,7 @@ def test_collection_inventory(driver):
 	assert infinite_records[1].find_element(By.TAG_NAME, "dd").text == "Creation: 1923-1960"
 	assert len(infinite_records[1].find_elements(By.XPATH, ".//*")) == 16
 	assert infinite_records[2].find_element(By.CLASS_NAME, "record-title").text == "Correspondence between Blakeslee and Oscar Hagen, 1936"
-	assert infinite_records[2].find_element(By.CLASS_NAME, "archival_object").text == " File — Box 1: Series I; Series II, Folder: 1"
+	assert infinite_records[2].find_element(By.CLASS_NAME, "archival_object").text == " File — Box: 1, Folder: 1"
 	assert infinite_records[2].find_element(By.TAG_NAME, "dt").text == "Dates"
 	assert infinite_records[2].find_element(By.TAG_NAME, "dd").text == "Creation: 1936"
 	assert len(infinite_records[2].find_elements(By.XPATH, ".//*")) == 13
