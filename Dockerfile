@@ -9,8 +9,9 @@ RUN apt-get install -y google-chrome-stable
 
 # install chromedriver
 RUN apt-get install -yqq unzip
-RUN wget -O /tmp/chromedriver.zip http://chromedriver.storage.googleapis.com/`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE`/chromedriver_linux64.zip
-RUN unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
+RUN wget -O /tmp/chromedriver.zip https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/120.0.6099.2/linux64/chromedriver-linux64.zip
+RUN unzip /tmp/chromedriver.zip chromedriver-linux64/chromedriver -d /usr/local/bin/chromedrivertmp && \
+  mv /usr/local/bin/chromedrivertmp/chromedriver-linux64/chromedriver /usr/local/bin/
 
 # set display port to avoid crash
 ENV DISPLAY=:99
@@ -18,7 +19,7 @@ ENV DISPLAY=:99
 # install selenium
 RUN pip install selenium==3.8.0
 
-RUN apt-get update && apt-get install -y libpq-dev gcc python-dev supervisor && \
+RUN apt-get update && apt-get install -y libpq-dev gcc supervisor && \
   pip install --upgrade --force-reinstall -r /tmp/requirements.txt -i https://pypi.org/simple/ --extra-index-url https://test.pypi.org/simple/
 
 RUN useradd --create-home puitester

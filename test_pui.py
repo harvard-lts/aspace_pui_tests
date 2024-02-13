@@ -30,13 +30,13 @@ def test_search_by_keyword(driver):
 	# repositories/4/resources/11842
 	driver.get(str(_base_url))
 	search_field = driver.find_element(By.ID, "q0")
-	search_field.send_keys("Test Resource 123")
-	assert search_field.get_attribute('value') == 'Test Resource 123'
+	search_field.send_keys("rex the dog")
+	assert search_field.get_attribute('value') == 'rex the dog'
 	search_field.send_keys(Keys.RETURN)
 	results = driver.find_elements(By.CLASS_NAME, "recordrow")
 	assert len(results) == 1
 	abstract = results[0].find_element(By.CLASS_NAME, "abstract").text
-	assert abstract == "Overview:\nTest Resource Abstract"
+	assert abstract.startswith("Scope and Contents: This series contains images pertaining to various aspects of the Harvard Art Museums. This includes images taken in the Fogg Museum")
 
 def test_is_and_the_implied_operator(driver):
 	# assumes the existance of "Stella Patrick Campbell collection of letters and documents relating to theater" collection
@@ -192,7 +192,7 @@ def test_sort_results_by_title(driver):
 	search_field.send_keys("theater")
 	search_field.send_keys(Keys.RETURN)
 	results = driver.find_elements(By.CLASS_NAME, "recordrow")
-	assert results[0].find_element(By.CLASS_NAME, "record-title").text == "Frank Lloyd Wright drawings of Dallas Theater Center"
+	assert results[0].find_element(By.CLASS_NAME, "record-title").text == "Meyer Keilsohn theater architecture photographs"
 
 	# Sort by title (asc)
 	select = Select(driver.find_element(By.ID, 'sort'))
@@ -219,9 +219,9 @@ def test_sort_results_by_year(driver):
 	search_field.send_keys("theater")
 	search_field.send_keys(Keys.RETURN)
 	results = driver.find_elements(By.CLASS_NAME, "recordrow")
-	assert results[0].find_element(By.CLASS_NAME, "record-title").text == "Frank Lloyd Wright drawings of Dallas Theater Center"
+	assert results[0].find_element(By.CLASS_NAME, "record-title").text == "Meyer Keilsohn theater architecture photographs"
 
-	# Sort by title (asc)
+	# Sort by year (asc)
 	select = Select(driver.find_element(By.ID, 'sort'))
 	select.select_by_visible_text("Year (ascending)")
 	sort_button = driver.find_element(By.CLASS_NAME, "sort-button")
@@ -229,7 +229,7 @@ def test_sort_results_by_year(driver):
 	results = driver.find_elements(By.CLASS_NAME, "recordrow")
 	assert results[0].find_element(By.CLASS_NAME, "record-title").text == "Robert Cruikshank drawings for toy theater characters"
 
-	# Sort by title (desc)
+	# Sort by year (desc)
 	select = Select(driver.find_element(By.ID, 'sort'))
 	select.select_by_visible_text("Year (descending)")
 	sort_button = driver.find_element(By.CLASS_NAME, "sort-button")
@@ -328,7 +328,7 @@ def test_browse_collections_and_sort(driver):
 	sort_button.click()
 	records = driver.find_elements(By.CLASS_NAME, "recordrow")
 	assert len(records) == 25
-	assert records[0].find_element(By.CLASS_NAME, "record-title").text.startswith("Z")
+	assert records[0].find_element(By.CLASS_NAME, "record-title").text.startswith("[")
 
 ###### Browse Digital Materials ######
 
@@ -404,7 +404,7 @@ def test_collection_overview_tab(driver):
 	assert len(h4s) == 4
 	assert h4s[1].text == "Dates"
 	assert h4s[3].text == "Extent"
-	assert upper_details.find_element(By.CLASS_NAME, "dates").text == "1912-1960"
+	assert upper_details.find_element(By.CLASS_NAME, "dates").text == "Creation: 1912-1960"
 	h3s = upper_details.find_elements(By.TAG_NAME, "h3")
 	assert len(h3s) == 1
 	assert h3s[0].text == "Creator"
@@ -475,10 +475,10 @@ def test_collection_inventory(driver):
 	driver.find_element(By.LINK_TEXT, "COLLECTION INVENTORY").click()
 	assert driver.current_url == _base_url + "repositories/20/resources/1182/collection_organization"
 
-	sleep(1)
+	sleep(3)
 	main_panel = driver.find_element(By.CLASS_NAME, "col-sm-9")
 	# spot check some records on different levels of hierarchy
-	infinite_records = main_panel.find_elements(By.CLASS_NAME, "infinite-record-record")
+	infinite_records = driver.find_elements(By.CLASS_NAME, "infinite-record-record")
 	assert infinite_records[0].find_element(By.CLASS_NAME, "record-title").text == "Albert F. Blakeslee correspondence and notebooks"
 	assert infinite_records[0].find_element(By.CLASS_NAME, "information").find_element(By.CLASS_NAME, "record-type-badge").text == " Collection"
 	assert infinite_records[0].find_element(By.CLASS_NAME, "information").find_element(By.CLASS_NAME, "identifier").text == "Identifier:\n far00002"
@@ -491,7 +491,7 @@ def test_collection_inventory(driver):
 	assert dts[4].text == "Language of Materials"
 	dds = infinite_records[0].find_elements(By.TAG_NAME, "dd")
 	assert dds[0].text.startswith("The collection is available by appointment for research")
-	assert dds[1].text == "1912-1960"
+	assert dds[1].text == "Creation: 1912-1960"
 	assert dds[2].text == "1 collection (1 box)"
 	assert dds[3].text == "Blakeslee, Albert Francis, 1874-1954"
 	assert dds[4].text == "English"
@@ -500,12 +500,12 @@ def test_collection_inventory(driver):
 	assert infinite_records[1].find_element(By.CLASS_NAME, "record-type-badge").text == " Series"
 	assert infinite_records[1].find_element(By.CLASS_NAME, "identifier").text == "Identifier:\n I"
 	assert infinite_records[1].find_element(By.TAG_NAME, "dt").text == "Dates"
-	assert infinite_records[1].find_element(By.TAG_NAME, "dd").text == "1923-1960"
+	assert infinite_records[1].find_element(By.TAG_NAME, "dd").text == "Creation: 1923-1960"
 	assert len(infinite_records[1].find_elements(By.XPATH, ".//*")) == 16
 	assert infinite_records[2].find_element(By.CLASS_NAME, "record-title").text == "Correspondence between Blakeslee and Oscar Hagen, 1936"
-	assert infinite_records[2].find_element(By.CLASS_NAME, "archival_object").text == " File — Box: 1, Folder: 1"
+	assert infinite_records[2].find_element(By.CLASS_NAME, "archival_object").text == " File — Box 1: Series I; Series II, Folder: 1"
 	assert infinite_records[2].find_element(By.TAG_NAME, "dt").text == "Dates"
-	assert infinite_records[2].find_element(By.TAG_NAME, "dd").text == "1936"
+	assert infinite_records[2].find_element(By.TAG_NAME, "dd").text == "Creation: 1936"
 	assert len(infinite_records[2].find_elements(By.XPATH, ".//*")) == 13
 
 	# Check that items in the collection inventory match those in the sidebar
@@ -635,7 +635,6 @@ def test_download_csv(driver):
 	
 	index = 0
 	for row in downloaded_rows:
-		print(index)
 		assert row == test_rows[index]
 		index += 1
 
@@ -652,7 +651,7 @@ def test_finding_aid_component_citation(driver):
 	driver.get(str(_base_url) + "repositories/20/resources/1182")
 	sleep(1)
 	driver.find_element(By.ID, "sidebar").find_element(By.LINK_TEXT, "Correspondence, 1923-1960").click()
-	assert driver.current_url == "https://aspacepui-dev.lib.harvard.edu/repositories/20/archival_objects/262126"
+	assert driver.current_url == str(_base_url) + "repositories/20/archival_objects/262126"
 	driver.find_element(By.CLASS_NAME, "request").click()
 	sleep(1)
 	description_tab = driver.find_element(By.ID, "item_description_citation")
